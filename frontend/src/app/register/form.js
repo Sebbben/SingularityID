@@ -3,6 +3,7 @@ import { makeParamsString } from "@/utils/general";
 import { Form, Input, Checkbox, Button, Link } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import API from "@/utils/api"; // Import the API utility
 
 export default function RegisterForm({ params }) {
   const [password, setPassword] = useState("");
@@ -93,28 +94,19 @@ export default function RegisterForm({ params }) {
       state: params.state
     };
 
-
-    // Submit data to api endpoint
-    fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(registerFormData),
-    })
-      .then((res) => {
-        return res.json()
-      })
-      .then((res) => {
-        if (res.error) {
-          console.error(res.error);
-        } else {
-          if (res.redirect_uri) {
-            router.push(res.redirect_uri)
-          }
+    // Submit data to api endpoint using API utility
+    API.POST("/api/auth/register", registerFormData,
+      success = (data) => {
+        if (data.redirect_uri) {
+          router.push(data.redirect_uri)
         }
-      })
-      .catch((err) => console.error);
+
+      },
+      error = (status, error) => {
+        console.error(status, error);
+      }
+        
+    )
   };
 
   const handleRedirectLogin = (e) => {
