@@ -1,6 +1,6 @@
-CREATE DATABASE auth;
+CREATE DATABASE singularity_id;
 
-\c auth
+\c singularity_id
 
 CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
