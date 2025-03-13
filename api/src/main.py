@@ -9,6 +9,7 @@ from auth.login import login
 from auth.token import token
 from auth.logout import logout
 from auth.register import register
+from auth.register_client import register_client
 from auth.resetPassword import resetPassword
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ app.config.from_object(Config)
 app.add_url_rule("/auth/login", None, login, methods=["POST"])
 app.add_url_rule("/auth/token", None, token, methods=["POST"])
 app.add_url_rule("/auth/register", None, register, methods=["POST"])
+app.add_url_rule("/auth/register_client", None, register_client, methods=["POST"])
 # app.add_url_rule("/auth/logout", None, logout, methods=["POST"])
 # app.add_url_rule("/auth/resetPassword", None, resetPassword, methods=["POST"])
 
