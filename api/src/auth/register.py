@@ -50,6 +50,26 @@ def isValidRegisterForm(params):
     isTermsAccepted(params["terms"])
 
 def register():
+    """
+    POST /auth/register
+    Handles user registration.
+    Request JSON body:
+    {
+        "username": "string",
+        "password": "string",
+        "confirm_password": "string",
+        "terms": "true",
+        "client_id": "string",
+        "response_type": "string",
+        "redirect_uri": "string",
+        "state": "string"
+    }
+    Response:
+    - 302 Redirect with authorization code
+    - 400 Bad request
+    - 409 Conflict
+    - 500 Internal server error
+    """
     if request.method != "POST": return requestDefs.method_not_allowed()
     json = request.get_json()
     

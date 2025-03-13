@@ -5,6 +5,24 @@ import requestDefs
 import utils
 
 def login():
+    """
+    POST /auth/login
+    Handles user login.
+    Request JSON body:
+    {
+        "username": "string",
+        "password": "string",
+        "client_id": "string",
+        "redirect_uri": "string",
+        "response_type": "string",
+        "state": "string"
+    }
+    Response:
+    - 302 Redirect with authorization code
+    - 400 Bad request
+    - 401 Unauthorized
+    - 500 Internal server error
+    """
     data:dict[str,str] = request.get_json()
     username = data.get('username')
     password = data.get('password')

@@ -5,6 +5,21 @@ import utils
 import datetime
 
 def token():
+    """
+    POST /auth/token
+    Exchanges authorization code for access token.
+    Request JSON body:
+    {
+        "grant_type": "authorization_code",
+        "code": "string",
+        "redirect_uri": "string",
+        "client_id": "string"
+    }
+    Response:
+    - 200 OK with access token
+    - 400 Bad request
+    - 500 Internal server error
+    """
     data: dict[str, str] = request.get_json()
 
     grant_type = data["grant_type"]
@@ -12,12 +27,9 @@ def token():
     redirect_uri = data["redirect_uri"]
     client_id = data["client_id"]
 
-
     # TODO: Make util function for proper check of params per oauth spec
     if grant_type != "authorization_code":
         return requestDefs.bad_request("Invalid grant type")
-
-
 
     with getDB().connection() as conn:
         with conn.cursor() as cur:
