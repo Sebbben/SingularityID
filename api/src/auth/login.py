@@ -71,6 +71,6 @@ def login():
             "expires_at": int(expiresAt.timestamp())
         } # TODO: Pass params like state through the redirect
 
-        return requestDefs.redirectTemp(utils.addParamsToUriString(redirect_uri, extraParams))
+        return requestDefs.redirectTemp(utils.URL.addParamsToUriString(redirect_uri, extraParams))
 
     return requestDefs.internal_server_error("Something whent wrong during the authentication process")

@@ -4,9 +4,10 @@ import API from '@/utils/api';
 
 const RegisterClientForm = ({ params }) => {
     const [formData, setFormData] = useState({
-        client_name: params.client_name || "",
+        name: params.name || "",
         redirect_uris: params.redirect_uris || "",
         grant_types: params.grant_types || "",
+        scopes: params.scopes || "",
     });
 
     const handleValueChange = (name, value) => {
@@ -23,7 +24,7 @@ const RegisterClientForm = ({ params }) => {
 
     const handleReset = () => {
         setFormData({
-            client_name: "",
+            name: "",
             redirect_uris: "",
             grant_types: "",
         });
@@ -34,11 +35,11 @@ const RegisterClientForm = ({ params }) => {
             isRequired: true,
             label: "Client Name",
             labelPlacement: "outside",
-            name: "client_name",
+            name: "name",
             placeholder: "Enter client name",
             type: "text",
-            value: formData.client_name,
-            onValueChange: (value) => handleValueChange("client_name", value),
+            value: formData.name,
+            onValueChange: (value) => handleValueChange("name", value),
         },
         {
             isRequired: true,
@@ -59,6 +60,16 @@ const RegisterClientForm = ({ params }) => {
             type: "text",
             value: formData.grant_types,
             onValueChange: (value) => handleValueChange("grant_types", value),
+        },
+        {
+            isRequired: false,
+            label: "Scopes",
+            labelPlacement: "outside",
+            name: "scopes",
+            placeholder: "Enter scopes",
+            type: "text",
+            value: formData.scopes,
+            onValueChange: (value) => handleValueChange("scopes", value),
         },
     ];
 

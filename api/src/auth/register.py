@@ -103,4 +103,4 @@ def register():
         "expires_at": int(expiresAt.timestamp())
     } # TODO: Pass params like state through the redirect
 
-    return requestDefs.redirectTemp(utils.addParamsToUriString(json["redirect_uri"], extraParams))
+    return requestDefs.redirectTemp(utils.URL.addParamsToUriString(json["redirect_uri"], extraParams))

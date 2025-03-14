@@ -69,20 +69,23 @@ class OAuth:
 
         return token, expires_at
 
-def makeUrlParamsString(params):
-    return urlencode(params)
+class URL:
+    @staticmethod
+    def makeUrlParamsString(params):
+        return urlencode(params)
 
-def addParamsToUriString(url, params): # TODO: Check for url safety
-    parsedUrl = urlparse(url)
+    @staticmethod
+    def addParamsToUriString(url, params): # TODO: Check for url safety
+        parsedUrl = urlparse(url)
 
-    if parsedUrl.query == "":
+        if parsedUrl.query == "":
+            parsedUrl = parsedUrl._replace(query=URL.makeUrlParamsString(params))
+        else:
+            query = parsedUrl.query.split("&")
+            query = {(split:=param.split("="))[0]: split[1] for param in query}
 
-        parsedUrl = parsedUrl._replace(query=makeUrlParamsString(params))
-    else:
-        query = parsedUrl.query.split("&")
-        query = {(split:=param.split("="))[0]: split[1] for param in query}
+            params.update(query)
+            parsedUrl = parsedUrl._replace(query=URL.makeUrlParamsString(params))
 
-        params.update(query)
-        parsedUrl = parsedUrl._replace(query=makeUrlParamsString(params))
-
-    return urlunparse(parsedUrl)
+        return urlunparse(parsedUrl)
+    
