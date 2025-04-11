@@ -23,7 +23,9 @@ def login():
     - 401 Unauthorized
     - 500 Internal server error
     """
+
     data:dict[str,str] = request.get_json()
+
     username = data.get('username')
     password = data.get('password')
     client_id = data.get("client_id")
@@ -31,12 +33,15 @@ def login():
     response_type = data.get("response_type")
     state = data.get("state")
 
-    if not utils.OAuth.isValidGrantReqest({
+    grantValidationCheck = utils.OAuth.isValidGrantReqest({
         "client_id": client_id, 
         "redirect_uri": redirect_uri,
         "response_type": response_type,
-        "state": state}):
-        return requestDefs.bad_request("Invalid grant request")
+        "state": state
+    })
+    
+    if not grantValidationCheck.is_ok():
+        return requestDefs.bad_request("Invalid grant request\n" + "\n".join(grantValidationCheck.get_errors()))
 
     if not username or not password:
         return requestDefs.bad_request("Missing username or password")

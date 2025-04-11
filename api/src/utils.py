@@ -11,9 +11,9 @@ class OAuth:
                 cursor.execute("SELECT id FROM clients WHERE id=%s", (client_id,))
                 res = cursor.fetchall()
                 if len(res) != 1:
-                    return False
+                    return Result.Error("Invalid client")
                 else:
-                    return True
+                    return Result.Ok()
 
     def isValidRedirectUri(client_id, redirect_uri):
         # TODO: Do url validation before check
@@ -23,19 +23,26 @@ class OAuth:
                 cursor.execute("SELECT redirect_uri FROM client_redirect_uris WHERE client_id = %s AND redirect_uri = %s", (client_id, redirect_uri))
                 res = cursor.fetchall()
 
-                return len(res) == 1
+                if len(res) == 1:
+                    return Result.Ok()
+                return Result.Error("Invalid redirect url")
 
     def hasRequiredParams(params):
-        return all([param in params for param in ["client_id", "redirect_uri", "response_type", "state"]])
+        if all([param in params for param in ["client_id", "redirect_uri", "response_type", "state"]]):
+            return Result.Ok()
+        return Result.Error("Missing required params")
 
     def isValidResponseType(response_type):
-        return response_type in ["code"]
+        return Result.Ok() if response_type in ["code"] else Result.Error("Invalid responsetype")
 
     def isValidGrantReqest(params):
-        return OAuth.hasRequiredParams(params) and \
-        OAuth.isValidClient(params["client_id"]) and \
-        OAuth.isValidRedirectUri(params["client_id"], params["redirect_uri"]) and \
-        OAuth.isValidResponseType(params["response_type"])
+        
+        result = OAuth.hasRequiredParams(params)
+        result.concat(OAuth.isValidClient(params["client_id"]))
+        result.concat(OAuth.isValidRedirectUri(params["client_id"], params["redirect_uri"]))
+        result.concat(OAuth.isValidResponseType(params["response_type"]))
+
+        return result
 
 
     def generateAuthenticationCode(client_id, user_id, redirect_uri, scope="") -> tuple[str, datetime.datetime]:
@@ -89,3 +96,38 @@ class URL:
 
         return urlunparse(parsedUrl)
     
+
+class Result:
+    def __init__(self, success, error=None):
+        self.success = success
+        self.error = error if isinstance(error, list) else ([error] if error else [])
+
+    @staticmethod
+    def Ok():
+        return Result(success=True)
+
+    @staticmethod
+    def Error(error):
+        return Result(success=False, error=error)
+
+    def is_ok(self):
+        return self.success
+
+    def is_error(self):
+        return not self.success
+
+    def get_errors(self):
+        return self.error
+
+    def concat(self, other):
+        """Combine this result with another result."""
+        if other.is_error():
+            self.success = False
+            self.error += other.error
+
+        return self
+
+    def __str__(self):
+        if self.is_ok():
+            return f"Result(Ok, errors={self.error})"
+        return f"Result(Error, errors={self.error})"

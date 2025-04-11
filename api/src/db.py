@@ -14,7 +14,6 @@ class Database:
             f"{self.db_config['host']}:{self.db_config['port']}/"+
             f"{self.db_config['database']}"
         )
-        print(connection_string, flush=True)
         self.connection_pool = ConnectionPool(conninfo=connection_string)
 
     def _get_connection(self):
