@@ -1,4 +1,5 @@
 import { makeParamsString } from "./general"
+import { redirect } from "next/navigation"
 
 /**
  * Static API class to handle GET and POST requests.
@@ -50,15 +51,24 @@ class API {
             ...options
         })
         .then(async res => {
-            if (!res.ok) {
+            if (res.ok) {
+                let json = await res.json()
+                success(json)
+    
+                return json
+            } else if ( 300 <= res.status <= 399) {
+                console.log("Redirecting")
+                let json = await res.json()
+                if (json.redirect_uri) {
+                    redirect(json.redirect_uri)
+                } else {
+                    console.log(json)
+                }
+                return json
+            } else {
                 error(res.status, res.error)
                 return {res}
             }
-
-            let json = await res.json()
-            success(json)
-
-            return json
         })
         
         return json

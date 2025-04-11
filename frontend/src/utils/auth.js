@@ -6,7 +6,7 @@ const clientId = "c0cdbdb5-d849-4709-882d-4ff53839f9f6" // TODO: get id from app
 
 export function startLoginFlow() {
     redirect("/login?" + makeParamsString({
-        "response_type": "auth_code",
+        "response_type": "code",
         "client_id": clientId,
         "redirect_uri": "/",
         "state": "None"

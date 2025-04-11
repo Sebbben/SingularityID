@@ -6,6 +6,8 @@ import { useState } from "react";
 import API from "@/utils/api";
 
 export default function LoginForm({params}) {
+
+
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const router = useRouter();
@@ -74,7 +76,7 @@ export default function LoginForm({params}) {
       submitButtonText="Submit"
       resetButtonText="Reset"
       linkText="Not a user? Register here"
-      linkHref="/register"
+      linkHref={"/register?" + makeParamsString(params)}
       linkOnClick={handleRedirectRegister}
       errors={errors}
     />
