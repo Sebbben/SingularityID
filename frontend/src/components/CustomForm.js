@@ -70,7 +70,7 @@ export const CustomForm = ({ fields, onSubmit, onReset, submitButtonText, resetB
                     <Button className="w-full" color="primary" type="submit">
                         {submitButtonText}
                     </Button>
-                    <Button type="reset" variant="bordered" onClick={onReset}>
+                    <Button type="reset" variant="bordered" onPress={onReset}>
                         {resetButtonText}
                     </Button>
                 </div>
@@ -78,7 +78,7 @@ export const CustomForm = ({ fields, onSubmit, onReset, submitButtonText, resetB
                     <div className="flex justify-center align-items-center text-sm">
                         <p className="flex items-center">
                             {linkText} &nbsp;
-                            <Link className="text-small" href={linkHref} onClick={linkOnClick}>
+                            <Link className="text-small" href={linkHref} onPress={linkOnClick}>
                                 {linkText}
                             </Link>
                         </p>

@@ -1,18 +1,18 @@
-"use client";
 import { Card } from "@nextui-org/react";
 import RegisterClientForm from "./clientForm";
-import { useSearchParams } from "next/navigation";
+import { cookies } from "next/headers";
+import { startLoginFlow } from "@/utils/auth";
 
+export default async function RegisterClientPage() {
 
-export default function RegisterClientPage() {
+    const cookieStore = await cookies();
 
-    const searchParams = useSearchParams();
-    const params = Object.fromEntries(searchParams.entries());
+    if (!cookieStore.has("session")) startLoginFlow();
 
     return (
         <div className="flex items-center justify-center h-full">
             <Card className="p-8">
-                <RegisterClientForm params={params}/>
+                <RegisterClientForm/>
             </Card>
         </div>
     );

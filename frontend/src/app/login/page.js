@@ -2,18 +2,22 @@
 import { Card } from "@nextui-org/react";
 import LoginForm from "./form";
 import { useSearchParams } from "next/navigation";
+import BadRequest from "./badRequest";
+
+
+
+export const requiredParams = ["response_type", "client_id", "redirect_uri", "state"];
 
 export default function LoginPage() {
 
   const searchParams = useSearchParams();
   const params = Object.fromEntries(searchParams.entries());
 
-  const requiredParams = ["response_type", "client_id", "redirect_uri", "state"];
   const hasAllRequiredParams = requiredParams.every(param => param in params);
   const hasOnlyRequiredParams = Object.keys(params).every(param => requiredParams.includes(param));
 
   if (!hasAllRequiredParams || !hasOnlyRequiredParams) {
-    return <div>Bad request</div>;
+    return <BadRequest/>;
   }
 
   return (

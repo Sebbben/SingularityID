@@ -1,8 +1,15 @@
+"use client"
 import React, { useState } from "react";
 import { CustomForm } from "@/components/CustomForm";
 import API from '@/utils/api';
+import { useSearchParams } from "next/navigation";
 
-const RegisterClientForm = ({ params }) => {
+const RegisterClientForm = () => {
+
+    const searchParams = useSearchParams();
+    const params = Object.fromEntries(searchParams.entries());
+
+
     const [formData, setFormData] = useState({
         name: params.name || "",
         redirect_uris: params.redirect_uris || "",

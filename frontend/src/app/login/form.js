@@ -31,7 +31,7 @@ export default function LoginForm({params}) {
         }
       },
       (status, error) => {
-        console.error(error);
+        console.log(error);
       }
     );
   };
