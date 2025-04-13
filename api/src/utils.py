@@ -1,11 +1,10 @@
-import psycopg
 from urllib.parse import urlparse, urlunparse, urlencode
-from db import getDB
-import datetime
+from src.db import DatabaseManager
+import datetime, os
 
 class OAuth:
     def isValidClient(client_id): 
-        db = getDB()
+        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
         with db.connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT id FROM clients WHERE id=%s", (client_id,))
@@ -17,7 +16,7 @@ class OAuth:
 
     def isValidRedirectUri(client_id, redirect_uri):
         # TODO: Do url validation before check
-        db = getDB()
+        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
         with db.connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT redirect_uri FROM client_redirect_uris WHERE client_id = %s AND redirect_uri = %s", (client_id, redirect_uri))
@@ -46,8 +45,9 @@ class OAuth:
 
 
     def generateAuthenticationCode(client_id, user_id, redirect_uri, scope="") -> tuple[str, datetime.datetime]:
+        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
 
-        with getDB().connection() as conn:
+        with db.connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                             INSERT INTO 
@@ -63,7 +63,9 @@ class OAuth:
     
 
     def makeAccessToken(client_id, user_id, scope) -> tuple[str, datetime.datetime]:
-        with getDB().connection() as conn:
+        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+
+        with db.connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                             INSERT INTO

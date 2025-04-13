@@ -1,3 +1,4 @@
+-- Init for IDP_DB
 CREATE DATABASE singularity_id;
 
 \c singularity_id
@@ -64,5 +65,27 @@ CREATE TABLE refresh_tokens (
     scope TEXT NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     FOREIGN KEY (client_id) REFERENCES clients(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+
+
+
+
+-- Init for APP_DB
+CREATE DATABASE frontend_db;
+
+\c frontend_db
+
+CREATE TABLE users (
+    user_id INTEGER PRIMARY KEY
+);
+
+CREATE TABLE token_pairs (
+    session_token VARCHAR(255) PRIMARY KEY DEFAULT gen_random_uuid(),
+    refresh_token VARCHAR(255) NOT NULL,
+    user_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );

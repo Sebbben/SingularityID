@@ -1,6 +1,6 @@
-import requestDefs
+import src.requestDefs as requestDefs
 import secrets
-from db import getDB
+from src.db import DatabaseManager
 from flask import request
 
 
@@ -30,7 +30,10 @@ def register_client():
 
     secret = secrets.token_urlsafe(32)
 
-    with getDB().connection() as conn:
+    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+
+
+    with db.connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM clients WHERE name = %s", (json["name"],))
             if cur.fetchone():

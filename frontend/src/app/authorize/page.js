@@ -1,18 +1,18 @@
 "use client";
 
-import { exchangeAuthCode, test } from "@/utils/actions";
-import { useSearchParams } from "next/navigation";
+import { exchangeAuthCode } from "@/utils/actions";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function authorize() {
     const params = useSearchParams();
+    const router = useRouter();
 
     useEffect(() => {
         const code = params.get("code");
         if (code) {
-            console.log(code)
             exchangeAuthCode(code); // Call the function inside useEffect
-            // test()
+            router.push("/")
         }
     }, [params]); // Dependency array ensures this runs when params change
 

@@ -1,16 +1,15 @@
 from flask import Flask
-from config import Config
+from src.config import Config
 import os
 
-from db import init as initDB
-from db import tearDownDB
+from src.db import DatabaseManager
 
-from auth.login import login
-from auth.token import token
-from auth.logout import logout
-from auth.register import register
-from auth.register_client import register_client
-from auth.resetPassword import resetPassword
+from src.auth.login import login
+from src.auth.token import token
+from src.auth.logout import logout
+from src.auth.register import register
+from src.auth.register_client import register_client
+from src.auth.resetPassword import resetPassword
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -23,12 +22,11 @@ app.add_url_rule("/auth/register_client", None, register_client, methods=["POST"
 # app.add_url_rule("/auth/logout", None, logout, methods=["POST"])
 # app.add_url_rule("/auth/resetPassword", None, resetPassword, methods=["POST"])
 
-initDB()
-
+DatabaseManager.get_instance()
 
 @app.teardown_appcontext
 def tearDown(c):
-    tearDownDB()
+    DatabaseManager.get_instance().tear_down_DBs()
 
 if __name__ == '__main__':
     app.run(debug=os.environ["DEBUG"], host="0.0.0.0", port=3000)

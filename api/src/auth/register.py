@@ -1,9 +1,9 @@
 from flask import request, redirect
-import requestDefs
-from db import getDB
+import src.requestDefs as requestDefs
+from src.db import DatabaseManager
 import bcrypt
 import re
-import utils
+import src.utils as utils
 
 
 def isValidPassword(password):
@@ -81,7 +81,10 @@ def register():
     if not isValidRegisterForm(json):
         return requestDefs.bad_request("Bad register form")
 
-    with getDB().connection() as conn:
+
+    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+
+    with db.connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM users WHERE username = %s", (json["username"],))
             if cur.fetchone():

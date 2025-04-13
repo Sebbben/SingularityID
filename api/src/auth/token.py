@@ -1,7 +1,7 @@
 from flask import request, jsonify
-from db import getDB
-import requestDefs
-import utils
+from src.db import DatabaseManager
+import src.requestDefs as requestDefs
+import src.utils as utils
 import datetime
 
 def token():
@@ -31,7 +31,9 @@ def token():
     if grant_type != "authorization_code":
         return requestDefs.bad_request("Invalid grant type")
 
-    with getDB().connection() as conn:
+    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+
+    with db.connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT user_id, scope FROM authorization_codes WHERE code=%s AND client_id = %s AND redirect_uri = %s AND expires_at >= NOW()", (code, client_id, redirect_uri))
             res = cur.fetchall()

@@ -8,7 +8,7 @@ class Database:
         self.connection_pool = None
         self.open_connections = []
 
-    def initialize_pool(self):
+    def initialize_pool(self) -> None:
         connection_string = (
             f"postgresql://{self.db_config['user']}:{self.db_config['password']}@"+
             f"{self.db_config['host']}:{self.db_config['port']}/"+
@@ -50,34 +50,41 @@ class Database:
     def connection(self):
         return self.ConnectionContext(self)
 
+class DatabaseManager:
+    instance = None
 
-DB = None
-# Example usage
-def init():
-    global DB
+    def __init__(self):
+        self.DBs: dict[str, Database] = {}
 
-    db_config = {
-        'user': os.getenv("POSTGRES_USER"),
-        'password': os.getenv("POSTGRES_PASSWORD"),
-        'host': os.getenv("DATABASE_HOST"),
-        'port': os.getenv("DATABASE_PORT"),
-        'database': os.getenv("DB_NAME")
-    }
+        self.init_db(os.getenv("IDP_DB"))
+        self.init_db(os.getenv("APP_DB"))
 
-    DB = Database(db_config)
-    DB.initialize_pool()
+    def init_db(self, database):
+        db_config = {
+            'user': os.getenv("POSTGRES_USER"),
+            'password': os.getenv("POSTGRES_PASSWORD"),
+            'host': os.getenv("DATABASE_HOST"),
+            'port': os.getenv("DATABASE_PORT"),
+            'database': database
+        }
+
+        self.DBs[database] = Database(db_config)
+        self.DBs[database].initialize_pool()
+
+    def get_db(self, database):
+        if database not in self.DBs:
+            raise NameError(f"Database {database} not initiated")
+        return self.DBs[database]
+
+    @staticmethod
+    def get_instance():
+        if DatabaseManager.instance == None:
+            DatabaseManager.instance = DatabaseManager()
+        
+        return DatabaseManager.instance
 
 
-def getDB() -> Database:
-    global DB
 
-    if not DB:
-        init()
-    return DB
-
-def tearDownDB():
-    global DB
-
-    if not DB: return
-    
-    DB.close_all_connections()
+    def tear_down_DBs(self):
+        for name, db in self.DBs:        
+            db.close_all_connections()

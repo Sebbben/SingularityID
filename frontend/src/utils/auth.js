@@ -12,4 +12,3 @@ export function startLoginFlow() {
         "state": "None"
     }))
 }
-

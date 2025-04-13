@@ -30,8 +30,13 @@ export async function exchangeAuthCode(authCode) {
         "client_id": clientId
     },{},)
 
+    // TODO: Make completly sure that res is a valid access token response
     if (res.access_token) {
-        const sessionToken = registerTokens(res);
+        const sessionToken = await API.POST("http://api:3000/session_token", {
+            "access_token": res.access_token,
+            "expires_in": res.expires_in
+        })
+        
         const cookieStore = cookies();
         cookieStore.set("session", sessionToken, {httpOnly: true})
     }
