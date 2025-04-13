@@ -57,7 +57,6 @@ class API {
     
                 return json
             } else if ( 300 <= res.status <= 399) {
-                console.log("Redirecting")
                 let json = await res.json()
                 if (json.redirect_uri) {
                     redirect(json.redirect_uri)

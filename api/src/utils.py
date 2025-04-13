@@ -71,7 +71,7 @@ class OAuth:
                             VALUES
                             (%s, %s, %s, gen_random_uuid(), NOW()::timestamp + INTERVAL '1 hour') 
                             RETURNING token, expires_at
-                            """)
+                            """, (client_id, user_id, scope))
                 token, expires_at = cur.fetchone()
 
         return token, expires_at

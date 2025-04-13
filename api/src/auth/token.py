@@ -33,7 +33,7 @@ def token():
 
     with getDB().connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT user_id, scope FROM authorization_codes WHERE code=%s AND client_id = %s AND redirect_uri = %s AND expires_at <= NOW()", (code, client_id, redirect_uri))
+            cur.execute("SELECT user_id, scope FROM authorization_codes WHERE code=%s AND client_id = %s AND redirect_uri = %s AND expires_at >= NOW()", (code, client_id, redirect_uri))
             res = cur.fetchall()
 
     if len(res) == 0:
