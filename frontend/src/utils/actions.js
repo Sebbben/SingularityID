@@ -1,8 +1,7 @@
 "use server"
 import { cookies } from 'next/headers'
 import API from './api'
-
-const clientId = "c0cdbdb5-d849-4709-882d-4ff53839f9f6" // TODO: get id from app DB (not IDP DB)
+import { clientId } from "@/utils/auth"
 
 export async function test() {
     "use server"
@@ -30,15 +29,15 @@ export async function exchangeAuthCode(authCode) {
         "client_id": clientId
     },{},)
 
-    // TODO: Make completly sure that res is a valid access token response
-    if (res.access_token) {
-        const sessionToken = await API.POST("http://api:3000/session_token", {
-            "access_token": res.access_token,
+    // TODO: Make completly sure that res is a valid refresh token response
+    if (res.refresh_token) {
+        const sessionTokenRes = await API.POST("http://api:3000/session_token", {
+            "refresh_token": res.refresh_token,
             "expires_in": res.expires_in
         })
         
-        const cookieStore = cookies();
-        cookieStore.set("session", sessionToken, {httpOnly: true})
+        const cookieStore = await cookies();
+        cookieStore.set("session", sessionTokenRes.session_token, {httpOnly: true})
     }
 
 }

@@ -3,6 +3,7 @@ import bcrypt
 from src.db import DatabaseManager
 import src.requestDefs as requestDefs
 import src.utils as utils
+from src.config import Config
 
 def login():
     """
@@ -46,7 +47,7 @@ def login():
     if not username or not password:
         return requestDefs.bad_request("Missing username or password")
 
-    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+    db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
     with db.connection() as conn:
         with conn.cursor() as cur:

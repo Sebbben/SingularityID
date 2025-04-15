@@ -3,6 +3,7 @@ from src.db import DatabaseManager
 import src.requestDefs as requestDefs
 import src.utils as utils
 import datetime
+from src.config import Config
 
 def token():
     """
@@ -31,7 +32,7 @@ def token():
     if grant_type != "authorization_code":
         return requestDefs.bad_request("Invalid grant type")
 
-    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+    db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
     with db.connection() as conn:
         with conn.cursor() as cur:
@@ -45,7 +46,7 @@ def token():
 
     user_id, scope = res[0]
     access_token, access_expiration = utils.OAuth.makeAccessToken(client_id, user_id, scope)
-    # refresh_token, refresh_expiration = utils.OAuth.makeRefreshToken(client_id, user_id, scope)
+    refresh_token, refresh_expiration = utils.OAuth.makeRefreshToken(client_id, user_id, scope)
 
     access_expires_in = int((access_expiration-datetime.datetime.now()).total_seconds())
 
@@ -53,6 +54,7 @@ def token():
         "token_type": "bearer",
         "access_token": access_token,
         "expires_in": access_expires_in,
-        # "refresh_token": refresh_token,
+        "refresh_token": refresh_token,
+        "refresh_expiration": refresh_expiration,
         "scope": scope
     })

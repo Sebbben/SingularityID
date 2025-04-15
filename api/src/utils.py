@@ -1,10 +1,12 @@
 from urllib.parse import urlparse, urlunparse, urlencode
 from src.db import DatabaseManager
-import datetime, os
+import datetime, bcrypt
+from src.config import Config
+
 
 class OAuth:
     def isValidClient(client_id): 
-        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
         with db.connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT id FROM clients WHERE id=%s", (client_id,))
@@ -16,7 +18,7 @@ class OAuth:
 
     def isValidRedirectUri(client_id, redirect_uri):
         # TODO: Do url validation before check
-        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
         with db.connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT redirect_uri FROM client_redirect_uris WHERE client_id = %s AND redirect_uri = %s", (client_id, redirect_uri))
@@ -45,7 +47,7 @@ class OAuth:
 
 
     def generateAuthenticationCode(client_id, user_id, redirect_uri, scope="") -> tuple[str, datetime.datetime]:
-        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
         with db.connection() as conn:
             with conn.cursor() as cur:
@@ -63,7 +65,7 @@ class OAuth:
     
 
     def makeAccessToken(client_id, user_id, scope) -> tuple[str, datetime.datetime]:
-        db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
         with db.connection() as conn:
             with conn.cursor() as cur:
@@ -74,9 +76,45 @@ class OAuth:
                             (%s, %s, %s, gen_random_uuid(), NOW()::timestamp + INTERVAL '1 hour') 
                             RETURNING token, expires_at
                             """, (client_id, user_id, scope))
+                conn.commit()
                 token, expires_at = cur.fetchone()
 
         return token, expires_at
+    
+    def makeRefreshToken(client_id, user_id, scope) -> tuple[str, datetime.datetime]:
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
+
+        with db.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                            INSERT INTO
+                            refresh_tokens(client_id, user_id, scope, token, expires_at)
+                            VALUES
+                            (%s, %s, %s, gen_random_uuid(), NOW()::timestamp + INTERVAL '1 hour') 
+                            RETURNING token, expires_at
+                            """, (client_id, user_id, scope))
+                conn.commit()
+                token, expires_at = cur.fetchone()
+
+        return token, expires_at
+    
+    def verifyClientCredentials(client_id, secret):
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
+
+        with db.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT secret FROM clients WHERE id = %s", (client_id,))
+                result = cur.fetchone()
+
+                if result is None:
+                    return Result.Error("No client with this id")
+
+                stored_secret = result[0].encode('utf-8')  # Ensure stored secret is in bytes
+                provided_secret = secret.encode('utf-8')  # Convert provided secret to bytes
+
+                if not bcrypt.checkpw(provided_secret, stored_secret):
+                    return Result.Error("Incorrect client password")
+                
 
 class URL:
     @staticmethod
@@ -133,3 +171,20 @@ class Result:
         if self.is_ok():
             return f"Result(Ok, errors={self.error})"
         return f"Result(Error, errors={self.error})"
+    
+def init_singularity_client():
+    secret = Config.CLIENT_SECRET
+    hashed_secret = bcrypt.hashpw(secret.encode('utf-8'), bcrypt.gensalt())
+
+    db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
+
+    with db.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM clients WHERE name='SingularityId'")
+            res = cur.fetchone()
+            if not res:
+                cur.execute("INSERT INTO clients(secret, name) VALUES (%s, 'SingularityId') RETURNING id", (hashed_secret, ))
+                res = cur.fetchone()
+                cur.execute("INSERT INTO client_redirect_uris(client_id, redirect_uri) VALUES (%s, %s)", (res[0], "/authorize"))
+                conn.commit()
+                print(f"Your singularity id is: '{res[0]}'", flush=True)

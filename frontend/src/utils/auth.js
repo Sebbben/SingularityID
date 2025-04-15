@@ -2,7 +2,8 @@
 import { redirect } from 'next/navigation'
 import { makeParamsString } from './general'
 
-const clientId = "c0cdbdb5-d849-4709-882d-4ff53839f9f6" // TODO: get id from app DB (not IDP DB)
+
+export const clientId = process.env.CLIENT_ID;
 
 export function startLoginFlow() {
     redirect("/login?" + makeParamsString({

@@ -1,6 +1,7 @@
 import psycopg
 from psycopg_pool import ConnectionPool
 import os
+from src.config import Config
 
 class Database:
     def __init__(self, db_config):
@@ -56,15 +57,15 @@ class DatabaseManager:
     def __init__(self):
         self.DBs: dict[str, Database] = {}
 
-        self.init_db(os.getenv("IDP_DB"))
-        self.init_db(os.getenv("APP_DB"))
+        self.init_db(Config.IDP_DB_NAME)
+        self.init_db(Config.APP_DB_NAME)
 
     def init_db(self, database):
         db_config = {
-            'user': os.getenv("POSTGRES_USER"),
-            'password': os.getenv("POSTGRES_PASSWORD"),
-            'host': os.getenv("DATABASE_HOST"),
-            'port': os.getenv("DATABASE_PORT"),
+            'user': Config.POSTGRES_USER,
+            'password': Config.POSTGRES_PASSWORD,
+            'host': Config.DB_HOST,
+            'port': Config.DB_PORT,
             'database': database
         }
 
@@ -86,5 +87,5 @@ class DatabaseManager:
 
 
     def tear_down_DBs(self):
-        for name, db in self.DBs:        
+        for _, db in self.DBs.items():
             db.close_all_connections()

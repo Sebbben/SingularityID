@@ -68,10 +68,6 @@ CREATE TABLE refresh_tokens (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-
-
-
-
 -- Init for APP_DB
 CREATE DATABASE frontend_db;
 

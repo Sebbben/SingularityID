@@ -22,6 +22,7 @@ services:
       context: ./api
       target: dev
     command: sh -c "python -m src.main"
+    restart: always
     volumes:
       - ./api/src:/app/src
       - /app/venv

@@ -4,6 +4,7 @@ from src.db import DatabaseManager
 import bcrypt
 import re
 import src.utils as utils
+from src.config import Config
 
 
 def isValidPassword(password):
@@ -82,7 +83,7 @@ def register():
         return requestDefs.bad_request("Bad register form")
 
 
-    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+    db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
     with db.connection() as conn:
         with conn.cursor() as cur:

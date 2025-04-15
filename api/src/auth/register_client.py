@@ -2,7 +2,8 @@ import src.requestDefs as requestDefs
 import secrets
 from src.db import DatabaseManager
 from flask import request
-
+import bcrypt
+from src.config import Config
 
 
 
@@ -29,8 +30,10 @@ def register_client():
         return requestDefs.bad_request("Missing required fields")
 
     secret = secrets.token_urlsafe(32)
+    hashed_secret = bcrypt.hashpw(secret.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    db = DatabaseManager.get_instance().get_db(os.getenv("AUTH_DB"))
+
+    db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
 
     with db.connection() as conn:
@@ -43,7 +46,7 @@ def register_client():
                 INSERT INTO clients (secret, name, access_token_lifetime, refresh_token_lifetime)
                 VALUES (%s, %s, %s, %s)
                 RETURNING id;
-            """, (secret, json["name"], 3600, 1209600)) # Access token lifetime 1h refreshtoken 2 weeks
+            """, (hashed_secret, json["name"], 3600, 1209600)) # Access token lifetime 1h refreshtoken 2 weeks
 
             client_id = cur.fetchone()[0]
 
