@@ -13,6 +13,8 @@ from src.auth.register_client import register_client
 from src.auth.resetPassword import resetPassword
 from src.routes.session_token import session_token
 
+from src.requestDefs import not_found, internal_server_error
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -22,6 +24,9 @@ app.add_url_rule("/auth/token", None, token, methods=["POST"])
 app.add_url_rule("/auth/register", None, register, methods=["POST"])
 app.add_url_rule("/auth/register_client", None, register_client, methods=["POST"])
 app.add_url_rule("/session_token", None, session_token, methods=["POST"])
+
+app.register_error_handler(404, not_found)
+app.register_error_handler(500, internal_server_error)
 # app.add_url_rule("/auth/logout", None, logout, methods=["POST"])
 # app.add_url_rule("/auth/resetPassword", None, resetPassword, methods=["POST"])
 
