@@ -1,4 +1,4 @@
-import src.requestDefs as requestDefs
+import src.utils.requestDefs as requestDefs
 import secrets
 from src.db import DatabaseManager
 from flask import request

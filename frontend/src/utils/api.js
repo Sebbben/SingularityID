@@ -14,18 +14,42 @@ class API {
      * @param {Function} [error=()=>{}] - Callback function to handle error response.
      * @returns {Promise<Object>} - The JSON response from the server.
      */
-    static async GET(url, args, options = {}, success = ()=>{}, error = ()=>{}) {
-        let json = await fetch(url + "?" + makeParamsString(args), options)
+    static async GET(url, args = null, options = {}, success = ()=>{}, error = ()=>{}) {
+        let endpoint = args ? url + "?" + makeParamsString(args) : url;
+        let json = await fetch(endpoint, options)
         .then(async res => {
-            if (!res.ok) {
+            if (res.ok) {
+                try {
+                    let json = await res.json()
+                    success(json)
+                    return json
+                } catch {
+                    console.warn("Could not read json of api response");
+                    console.warn(res);
+                }
+            } else if ( 300 <= res.status <= 399) {
+                try {
+                    let json = await res.json()
+                    if (json.redirect_uri) {
+                        redirect(json.redirect_uri)
+                    } else {
+                        console.log(json)
+                    }
+                    return json
+                } catch (err) {
+                    if (err instanceof SyntaxError) {
+                        console.warn("Could not read json of api response");
+                        console.warn(res);
+                    } else {
+                        throw err; // Re-throw other errors
+                    }
+                    console.warn("Could not read json of api response");
+                    console.warn(res);
+                }
+            } else {
                 error(res.status, res.error)
                 return {res}
             }
-
-            let json = await res.json()
-            success(json)
-
-            return json
         })
         
         return json
@@ -64,6 +88,7 @@ class API {
                     console.log(json)
                 }
                 return json
+
             } else {
                 error(res.status, res.error)
                 return {res}

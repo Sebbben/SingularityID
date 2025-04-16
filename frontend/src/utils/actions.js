@@ -1,12 +1,11 @@
 "use server"
 import { cookies } from 'next/headers'
 import API from './api'
-import { clientId } from "@/utils/auth"
+import { clientId, startLoginFlow } from "@/utils/auth"
 
-export async function test() {
+export async function login() {
     "use server"
-    const cookieStore = cookies();
-    cookieStore.set("Test", "test")
+    startLoginFlow()
 } 
 
 export async function exchangeAuthCode(authCode) {
@@ -27,22 +26,18 @@ export async function exchangeAuthCode(authCode) {
         "code": authCode,
         "redirect_uri": "/authorize",
         "client_id": clientId
-    },{},)
+    },{})
 
     // TODO: Make completly sure that res is a valid refresh token response
     if (res.refresh_token) {
         const sessionTokenRes = await API.POST("http://api:3000/session_token", {
             "refresh_token": res.refresh_token,
-            "expires_in": res.expires_in
+            "expires_in": res.expires_in,
+            "access_token": res.access_token
         })
         
         const cookieStore = await cookies();
-        cookieStore.set("session", sessionTokenRes.session_token, {httpOnly: true})
+        cookieStore.set("session_token", sessionTokenRes.session_token, {httpOnly: true})
     }
 
-}
-
-function registerTokens(tokens) {
-    console.log(tokens)
-    return "this_is_a_session_token"
 }

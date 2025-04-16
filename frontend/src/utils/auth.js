@@ -1,4 +1,3 @@
-
 import { redirect } from 'next/navigation'
 import { makeParamsString } from './general'
 
@@ -13,3 +12,4 @@ export function startLoginFlow() {
         "state": "None"
     }))
 }
+

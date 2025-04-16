@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from src.db import DatabaseManager
-import src.requestDefs as requestDefs
-import src.utils as utils
+import src.utils.requestDefs as requestDefs
+import src.utils.general as general
 import datetime
 from src.config import Config
 
@@ -45,8 +45,8 @@ def token():
         return requestDefs.internal_server_error("Something whent wrong with token fetching")
 
     user_id, scope = res[0]
-    access_token, access_expiration = utils.OAuth.makeAccessToken(client_id, user_id, scope)
-    refresh_token, refresh_expiration = utils.OAuth.makeRefreshToken(client_id, user_id, scope)
+    access_token, access_expiration = general.OAuth.makeAccessToken(client_id, user_id, scope)
+    refresh_token, refresh_expiration = general.OAuth.makeRefreshToken(client_id, user_id, scope)
 
     access_expires_in = int((access_expiration-datetime.datetime.now()).total_seconds())
 

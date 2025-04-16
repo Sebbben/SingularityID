@@ -1,9 +1,9 @@
 from flask import request, redirect
-import src.requestDefs as requestDefs
+import src.utils.requestDefs as requestDefs
 from src.db import DatabaseManager
 import bcrypt
 import re
-import src.utils as utils
+import src.utils.general as general
 from src.config import Config
 
 
@@ -76,7 +76,7 @@ def register():
     
     if not json: return requestDefs.bad_request("Request body must be JSON")
 
-    if not utils.OAuth.isValidGrantReqest(json):
+    if not general.OAuth.isValidGrantReqest(json):
         return requestDefs.bad_request("Invalid grant request")
 
     if not isValidRegisterForm(json):
@@ -92,7 +92,7 @@ def register():
                 return requestDefs.conflict("Username already exists")
             
             hashed_password = bcrypt.hashpw(json["password"].encode(), bcrypt.gensalt()).decode()
-            cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING user_id", (json["username"], hashed_password))
+            cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s) RETURNING id", (json["username"], hashed_password))
             userId = cur.fetchone()[0]
             conn.commit()
 
@@ -100,11 +100,11 @@ def register():
     
 
 
-    code, expiresAt = utils.OAuth.generateAuthenticationCode(json["client_id"], userId, json["redirect_uri"])
+    code, expiresAt = general.OAuth.generateAuthenticationCode(json["client_id"], userId, json["redirect_uri"])
 
     extraParams = {
         "code": code,
         "expires_at": int(expiresAt.timestamp())
     } # TODO: Pass params like state through the redirect
 
-    return requestDefs.redirectTemp(utils.URL.addParamsToUriString(json["redirect_uri"], extraParams))
+    return requestDefs.redirectTemp(general.URL.addParamsToUriString(json["redirect_uri"], extraParams))

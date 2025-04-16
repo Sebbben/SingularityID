@@ -1,8 +1,8 @@
 from flask import request, jsonify
 import bcrypt
 from src.db import DatabaseManager
-import src.requestDefs as requestDefs
-import src.utils as utils
+import src.utils.requestDefs as requestDefs
+import src.utils.general as general
 from src.config import Config
 
 def login():
@@ -34,7 +34,7 @@ def login():
     response_type = data.get("response_type")
     state = data.get("state")
 
-    grantValidationCheck = utils.OAuth.isValidGrantReqest({
+    grantValidationCheck = general.OAuth.isValidGrantReqest({
         "client_id": client_id, 
         "redirect_uri": redirect_uri,
         "response_type": response_type,
@@ -65,12 +65,12 @@ def login():
 
         with db.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT user_id FROM users WHERE username=%s", (username, ))
+                cur.execute("SELECT id FROM users WHERE username=%s", (username, ))
                 res = cur.fetchone()
         
 
 
-        code, expiresAt = utils.OAuth.generateAuthenticationCode(client_id, res[0], redirect_uri)
+        code, expiresAt = general.OAuth.generateAuthenticationCode(client_id, res[0], redirect_uri)
 
 
         extraParams = {
@@ -78,6 +78,6 @@ def login():
             "expires_at": int(expiresAt.timestamp())
         } # TODO: Pass params like state through the redirect
 
-        return requestDefs.redirectTemp(utils.URL.addParamsToUriString(redirect_uri, extraParams))
+        return requestDefs.redirectTemp(general.URL.addParamsToUriString(redirect_uri, extraParams))
 
     return requestDefs.internal_server_error("Something whent wrong during the authentication process")

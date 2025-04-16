@@ -7,7 +7,7 @@ export default async function RegisterClientPage() {
 
     const cookieStore = await cookies();
 
-    if (!cookieStore.has("session")) startLoginFlow();
+    if (!cookieStore.has("session_token")) startLoginFlow();
 
     return (
         <div className="flex items-center justify-center h-full">

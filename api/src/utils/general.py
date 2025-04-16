@@ -183,7 +183,10 @@ def init_singularity_client():
             cur.execute("SELECT id FROM clients WHERE name='SingularityId'")
             res = cur.fetchone()
             if not res:
-                cur.execute("INSERT INTO clients(secret, name) VALUES (%s, 'SingularityId') RETURNING id", (hashed_secret, ))
+                hashed_password = bcrypt.hashpw(Config.ADMIN_PASSWORD.encode('utf-8'), bcrypt.gensalt())
+                cur.execute("INSERT INTO users(username, password_hash) VALUES (%s, %s) RETURNING id", ("admin", hashed_password))
+                admin_id = cur.fetchone()[0]
+                cur.execute("INSERT INTO clients(secret, name, owner_id) VALUES (%s, 'SingularityId', %s) RETURNING id", (hashed_secret, admin_id))
                 res = cur.fetchone()
                 cur.execute("INSERT INTO client_redirect_uris(client_id, redirect_uri) VALUES (%s, %s)", (res[0], "/authorize"))
                 conn.commit()
