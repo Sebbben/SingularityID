@@ -1,6 +1,5 @@
 import { makeParamsString } from "./general"
 import { redirect } from "next/navigation"
-
 /**
  * Static API class to handle GET and POST requests.
  */
@@ -10,49 +9,14 @@ class API {
      * @param {string} url - The URL to make the GET request to.
      * @param {Object} args - The arguments to include in the query string.
      * @param {Object} [options={}] - Additional fetch options.
-     * @param {Function} [success=()=>{}] - Callback function to handle successful response.
-     * @param {Function} [error=()=>{}] - Callback function to handle error response.
      * @returns {Promise<Object>} - The JSON response from the server.
      */
-    static async GET(url, args = null, options = {}, success = ()=>{}, error = ()=>{}) {
+    static async GET(url, args = null, options = {}) {
         let endpoint = args ? url + "?" + makeParamsString(args) : url;
-        let json = await fetch(endpoint, options)
-        .then(async res => {
-            if (res.ok) {
-                try {
-                    let json = await res.json()
-                    success(json)
-                    return json
-                } catch {
-                    console.warn("Could not read json of api response");
-                    console.warn(res);
-                }
-            } else if ( 300 <= res.status <= 399) {
-                try {
-                    let json = await res.json()
-                    if (json.redirect_uri) {
-                        redirect(json.redirect_uri)
-                    } else {
-                        console.log(json)
-                    }
-                    return json
-                } catch (err) {
-                    if (err instanceof SyntaxError) {
-                        console.warn("Could not read json of api response");
-                        console.warn(res);
-                    } else {
-                        throw err; // Re-throw other errors
-                    }
-                    console.warn("Could not read json of api response");
-                    console.warn(res);
-                }
-            } else {
-                error(res.status, res.error)
-                return {res}
-            }
-        })
+        let res = await fetch(endpoint, options)
+        .then(this.extractJSONResponse)
         
-        return json
+        return res
     }
 
     /**
@@ -60,12 +24,10 @@ class API {
      * @param {string} url - The URL to make the POST request to.
      * @param {Object} args - The arguments to include in the request body.
      * @param {Object} [options={}] - Additional fetch options.
-     * @param {Function} [success=()=>{}] - Callback function to handle successful response.
-     * @param {Function} [error=()=>{}] - Callback function to handle error response.
      * @returns {Promise<Object>} - The JSON response from the server.
      */
-    static async POST(url, args, options = {}, success = ()=>{}, error = ()=>{}) {
-        let json = await fetch(url, {
+    static async POST(url, args, options = {}) {
+        let res = await fetch(url, {
             method: "POST",
             body: JSON.stringify(args),
             headers: {
@@ -74,28 +36,33 @@ class API {
             },
             ...options
         })
-        .then(async res => {
-            if (res.ok) {
-                let json = await res.json()
-                success(json)
-    
-                return json
-            } else if ( 300 <= res.status <= 399) {
-                let json = await res.json()
-                if (json.redirect_uri) {
-                    redirect(json.redirect_uri)
-                } else {
-                    console.log(json)
-                }
-                return json
+        .then(this.extractJSONResponse)
 
-            } else {
-                error(res.status, res.error)
-                return {res}
-            }
-        })
         
-        return json
+        return res
+    }
+
+    static async extractJSONResponse(res) {
+        try {
+            let json = await res.json()
+            if (300 <= res.status <= 399 && json.redirect_uri) API.handleRedirect(json.redirect_uri)
+            return [res.status, json];
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                console.warn("Could not read json of api response");
+                console.warn(res);
+            } else {
+                throw err; // Re-throw other errors
+            }
+        }
+    }
+
+    static async handleRedirect(url) {
+        if (typeof window !== "undefined") { // Client component
+            window.location = url
+        } else { // Server component // TODO : Possibly implement url validation to prevent redirection to mallisious urls
+            redirect(url);
+        }
     }
 }
 

@@ -95,18 +95,11 @@ export default function RegisterForm({ params }) {
     };
 
     // Submit data to api endpoint using API utility
-    API.POST("/api/auth/register", registerFormData, {},
-      (data) => {
-        console.log(data)
-        if (data.redirect_uri) {
+    API.POST("/api/auth/register", registerFormData).then(([status, data]) => {
+        if (300 <= status <= 399 && data.redirect_uri) {
           router.push(data.redirect_uri)
         }
-
-      },
-      (status, error) => {
-        console.log(status, error);
-      }
-        
+      }        
     )
   };
 

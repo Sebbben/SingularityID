@@ -21,16 +21,16 @@ export async function exchangeAuthCode(authCode) {
     // }
       
 
-    const res  = await API.POST("http://api:3000/auth/token", {
+    const [status, res]  = await API.POST("http://api:3000/auth/token", {
         "grant_type": "authorization_code",
         "code": authCode,
         "redirect_uri": "/authorize",
         "client_id": clientId
-    },{})
+    })
 
     // TODO: Make completly sure that res is a valid refresh token response
     if (res.refresh_token) {
-        const sessionTokenRes = await API.POST("http://api:3000/session_token", {
+        const [status, sessionTokenRes] = await API.POST("http://api:3000/session_token", {
             "refresh_token": res.refresh_token,
             "expires_in": res.expires_in,
             "access_token": res.access_token

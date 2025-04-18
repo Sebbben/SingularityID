@@ -1,13 +1,22 @@
+import urllib.parse
 from flask import request, jsonify
 import src.utils.auth as auth
 from src.db import DatabaseManager
 from src.utils.sessionHandler import SessionManager
 from src.config import Config
+import urllib
 
 def clients():
     if not auth.is_logged_in():
         return auth.login_redirect_response()
     
+    print(request.query_string, flush=True)
+    print(urllib.parse.urlparse(request.url).query, flush=True)
+
+    return get_all_clients()
+    
+
+def get_all_clients():
     db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
     session = SessionManager.get_instance().get_session(request.cookies.get("session_token"))

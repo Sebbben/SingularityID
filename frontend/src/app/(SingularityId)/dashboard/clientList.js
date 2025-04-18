@@ -5,14 +5,16 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@nextui-org/react";
 import { RedirectButton } from "@/components/Buttons/RedirectButton";
 import { DataFetchButton } from "@/components/Buttons/DataFetchButton";
+import { useRouter } from "next/navigation";
 
 export function ClientList() {
     const [clients, setClients] = useState([]);
+    const router = useRouter();
 
     const updateClients = () => {
-        API.GET("/api/clients", null, {}, (res) => {
+        API.GET("/api/clients").then(([status, res]) => {
             setClients(res.clients);
-        });
+        })
     };
 
     useEffect(updateClients, []);
@@ -24,7 +26,11 @@ export function ClientList() {
                 <ul className="space-y-4">
                     {clients.length > 0 ? (
                         clients.map((client) => (
-                            <li key={client.id} className="border-b pb-2">
+                            <li 
+                                key={client.id} 
+                                className="border-b pb-2 cursor-pointer hover:bg-gray-700" 
+                                onClick={() => router.push(`/clients/${client.id}`)}
+                            >
                                 <p className="font-medium">{client.name}</p>
                                 <p className="text-sm text-gray-500">
                                     Access Token Lifetime: {client.access_token_lifetime}s

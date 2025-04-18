@@ -25,7 +25,7 @@ import { Input, Button, Checkbox, Form, Link } from "@nextui-org/react";
  * @param {Object} errors - Object containing validation errors.
  * @param {String} errors.terms - Validation error message for terms and conditions.
  */
-export const CustomForm = ({ fields, onSubmit, onReset, submitButtonText, resetButtonText, linkText, linkHref, linkOnClick, errors }) => {
+export const CustomForm = ({ fields, onSubmit, onReset, submitButtonText, resetButtonText, linkText, linkHref, linkOnClick, errors = {} }) => {
     return (
         <Form
             className="w-full justify-center items-center space-y-4"

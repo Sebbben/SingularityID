@@ -25,7 +25,7 @@ app.add_url_rule("/auth/token", None, token, methods=["POST"])
 app.add_url_rule("/auth/register", None, register, methods=["POST"])
 app.add_url_rule("/auth/register_client", None, register_client, methods=["POST"])
 app.add_url_rule("/session_token", None, session_token, methods=["POST"])
-app.add_url_rule("/clients", None, clients, methods=["GET"])
+app.add_url_rule("/clients", None, clients, methods=["GET", "POST"])
 
 # app.add_url_rule("/auth/logout", None, logout, methods=["POST"])
 # app.add_url_rule("/auth/resetPassword", None, resetPassword, methods=["POST"])

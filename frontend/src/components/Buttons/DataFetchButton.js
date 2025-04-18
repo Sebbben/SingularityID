@@ -3,7 +3,7 @@ import { Button } from "@nextui-org/react"
 
 export function DataFetchButton(props) {
     const fetchData = () => {
-        API.GET(props.url, props.args, {}, (data) => {
+        API.GET(props.url, props.args).then(([status, data]) => {
             props.callback(data);
         })
     }

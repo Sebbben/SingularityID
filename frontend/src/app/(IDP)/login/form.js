@@ -26,12 +26,7 @@ export default function LoginForm({params}) {
     };
 
     // Submit data to api endpoint using API utility
-    API.POST("/api/auth/login", loginFormData, {}, 
-      (res) => {},
-      (status, error) => {
-        console.log(error);
-      }
-    );
+    API.POST("/api/auth/login", loginFormData);
   };
 
   const handleRedirectRegister = (e) => {
