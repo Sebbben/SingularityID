@@ -1,5 +1,7 @@
-import React from "react";
+"use client"
+import React, { useState } from "react";
 import { Input, Button, Checkbox, Form, Link } from "@nextui-org/react";
+import API from "@/utils/api";
 
 /**
  * CustomForm component to create reusable forms.
@@ -25,16 +27,51 @@ import { Input, Button, Checkbox, Form, Link } from "@nextui-org/react";
  * @param {Object} errors - Object containing validation errors.
  * @param {String} errors.terms - Validation error message for terms and conditions.
  */
-export const CustomForm = ({ fields, onSubmit, onReset, submitButtonText, resetButtonText, linkText, linkHref, linkOnClick, errors = {} }) => {
+export const CustomForm = ({ children, fields, url, defaultSubmit = true, hiddenFormFields = {}}) => {
+
+    const formDataInit = {}
+    fields.forEach(field => {
+        formDataInit[field.name] = field.value || "";
+    });
+
+    const [formData, setFormData] = useState(formDataInit)
+    const [errors, setErrors] = useState({});
+
+    const handleValueChange = (name, value) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleReset = () => {
+        setFormData(formDataInit);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.currentTarget));
+
+        try {
+            await API.POST(url, { ...data, ...hiddenFormFields });
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                submit: "Failed to submit the form. Please try again.",
+            }));
+        }
+    };
+
     return (
         <Form
             className="w-full justify-center items-center space-y-4"
             validationBehavior="native"
             validationErrors={errors}
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
         >
             <div className="flex flex-col gap-4 max-w-md">
-                {fields.map((field, index) => (
+                {fields.filter(field => field.type === "text" || field.type === "password").map((field, index) => (
                     <Input
                         key={index}
                         isRequired={field.isRequired}
@@ -45,45 +82,37 @@ export const CustomForm = ({ fields, onSubmit, onReset, submitButtonText, resetB
                         name={field.name}
                         placeholder={field.placeholder}
                         type={field.type}
-                        value={field.value}
-                        onValueChange={field.onValueChange}
+                        value={formData[field.name]}
+                        onChange={(e) => handleValueChange(field.name, e.target.value)}
                         fullWidth
                     />
                 ))}
-                {fields.some(field => field.type === "checkbox") && (
+                {fields.filter(field => field.type === "checkbox").map((field, index) => (
                     <Checkbox
-                        isRequired={fields.find(field => field.type === "checkbox").isRequired}
+                        key={index}
+                        isRequired={field.isRequired}
                         classNames={{ label: "text-small" }}
-                        isInvalid={!!errors.terms}
-                        name="terms"
+                        name={field.name}
                         validationBehavior="aria"
-                        value="true"
-                        onValueChange={() => setErrors((prev) => ({ ...prev, terms: undefined }))}
+                        value={formData[field.name]}
+                        onChange={(e) => handleValueChange(field.name, e.target.checked)}
                     >
-                        I agree to the terms and conditions
+                        {field.text}
                     </Checkbox>
-                )}
-                {errors.terms && (
-                    <span className="text-danger text-small">{errors.terms}</span>
-                )}
-                <div className="flex gap-4">
+                ))}
+                {
+                defaultSubmit ? 
+                (<div className="flex gap-4">
                     <Button className="w-full" color="primary" type="submit">
-                        {submitButtonText}
+                        Submit
                     </Button>
-                    <Button type="reset" variant="bordered" onPress={onReset}>
-                        {resetButtonText}
+                    <Button type="reset" variant="bordered" onPress={handleReset}>
+                        Reset
                     </Button>
-                </div>
-                {linkText && (
-                    <div className="flex justify-center align-items-center text-sm">
-                        <p className="flex items-center">
-                            {linkText} &nbsp;
-                            <Link className="text-small" href={linkHref} onPress={linkOnClick}>
-                                {linkText}
-                            </Link>
-                        </p>
-                    </div>
-                )}
+                </div>)
+                :
+                ({...children})
+                }
             </div>
         </Form>
     );
