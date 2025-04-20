@@ -10,12 +10,18 @@ class Database:
         self.open_connections = []
 
     def initialize_pool(self) -> None:
+
+        if self.connection_pool:
+            self.close_all_connections()
+
+
         connection_string = (
             f"postgresql://{self.db_config['user']}:{self.db_config['password']}@"+
             f"{self.db_config['host']}:{self.db_config['port']}/"+
             f"{self.db_config['database']}"
         )
         self.connection_pool = ConnectionPool(conninfo=connection_string)
+        self.open_connections = []  # Clear stale connections
 
     def _get_connection(self):
         if not self.connection_pool or self.connection_pool.closed:
@@ -25,7 +31,7 @@ class Database:
         return new_connection
 
     def release_connection(self, connection):
-        if self.connection_pool:
+        if self.connection_pool and not self.connection_pool.closed:
             self.open_connections.remove(connection)
             self.connection_pool.putconn(connection)
 
