@@ -1,9 +1,8 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { CustomForm } from '@/components/CustomForm'; // Adjust the path as needed
 import API from '@/utils/api'; // Import the API helper class
 import { Card } from "@nextui-org/react";
-
+    
 export function ClientForm({ client_id }) {
     const [clientData, setClientData] = useState(null);
     const [accessTokenLifetime, setAccessTokenLifetime] = useState('');

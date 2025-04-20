@@ -30,10 +30,17 @@ class Database:
         self.open_connections.append(new_connection)
         return new_connection
 
-    def release_connection(self, connection):
-        if self.connection_pool and not self.connection_pool.closed:
+    def release_connection(self, connection: psycopg.Connection):
+        if self.connection_pool and connection in self.open_connections:
             self.open_connections.remove(connection)
-            self.connection_pool.putconn(connection)
+            try:
+                self.connection_pool.putconn(connection)
+            except ValueError as e:
+                print(f"Error returning connection to pool: {e}")
+        else:
+            print("Attempted to release a connection not tracked by the current pool.")
+            if not connection.closed:
+                connection.close()
 
     def close_all_connections(self):
         if self.connection_pool:

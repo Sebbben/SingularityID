@@ -78,7 +78,6 @@ def has_permission(client_id):
                 WHERE token = %s
                 LIMIT 1
             )
-            AND id = %s
             """
             params = [client_id, session["access_token"]]
 
