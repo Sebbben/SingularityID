@@ -24,8 +24,7 @@ def session_token():
         expires_at
     )
 
-    if not session:
-        return requestDefs.internal_server_error("Something went wrong with session token creation")
+    if not session: return requestDefs.internal_server_error("Something went wrong with session token creation")
  
 
     return jsonify({

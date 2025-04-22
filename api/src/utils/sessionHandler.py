@@ -38,6 +38,7 @@ class SessionManager:
     def get_session(self, session_token):
         return self.session_cache[session_token] if session_token in self.session_cache else None
     
+
     def get_session_status(self, session_token: str):
         session = self.get_session(session_token)
         if not session: return "error"

@@ -2,7 +2,8 @@ from flask import request, jsonify
 import bcrypt
 from src.db import DatabaseManager
 import src.utils.requestDefs as requestDefs
-import src.utils.general as general
+from src.utils.general import URL
+from src.utils.auth import OAuth
 from src.config import Config
 
 def login():
@@ -34,7 +35,7 @@ def login():
     response_type = data.get("response_type")
     state = data.get("state")
 
-    grantValidationCheck = general.OAuth.isValidGrantReqest({
+    grantValidationCheck = OAuth.isValidGrantReqest({
         "client_id": client_id, 
         "redirect_uri": redirect_uri,
         "response_type": response_type,
@@ -70,7 +71,7 @@ def login():
         
 
 
-        code, expiresAt = general.OAuth.generateAuthenticationCode(client_id, res[0], redirect_uri)
+        code, expiresAt = OAuth.generateAuthenticationCode(client_id, res[0], redirect_uri)
 
 
         extraParams = {
@@ -78,6 +79,6 @@ def login():
             "expires_at": int(expiresAt.timestamp())
         } # TODO: Pass params like state through the redirect
 
-        return requestDefs.redirectTemp(general.URL.addParamsToUriString(redirect_uri, extraParams))
+        return requestDefs.redirectTemp(URL.addParamsToUriString(redirect_uri, extraParams))
 
     return requestDefs.internal_server_error("Something whent wrong during the authentication process")

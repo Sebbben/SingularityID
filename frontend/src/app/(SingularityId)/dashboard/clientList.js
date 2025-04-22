@@ -13,7 +13,7 @@ export function ClientList() {
 
     const updateClients = () => {
         API.GET("/api/clients").then(([status, res]) => {
-            setClients(res.clients);
+            setClients(res);
         })
     };
 

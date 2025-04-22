@@ -16,7 +16,7 @@ export function ClientForm({ client_id }) {
                 { client_id: client_id },
             );
             
-            const client = clientDataRes["clients"][0] // Get first and only element from the clients returned
+            const client = clientDataRes // Get first and only element from the clients returned
             setClientData(client);
             setAccessTokenLifetime(client.access_token_lifetime);
             setRefreshTokenLifetime(client.refresh_token_lifetime);
