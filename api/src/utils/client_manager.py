@@ -15,6 +15,7 @@ class ClientManager:
         db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
         session = SessionManager.get_instance().get_session(request.cookies.get("session_token"))
 
+        client_dict_list = None
         with db.connection() as conn:
             with conn.cursor() as cur:
                 query = """
@@ -38,14 +39,35 @@ class ClientManager:
 
                 res = cur.fetchall()
 
-        client_dict_list = [
-            {
-                "id": id,
-                "name": name,
-                "access_token_lifetime": a_time,
-                "refresh_token_lifetime": r_time
-            } for id, name, a_time, r_time in res
-        ]   
+                client_dict_list = [
+                    {
+                        "id": id,
+                        "name": name,
+                        "access_token_lifetime": a_time,
+                        "refresh_token_lifetime": r_time
+                    } for id, name, a_time, r_time in res
+                ]   
+
+
+                for client in client_dict_list:
+                    cur.execute("""
+                                SELECT redirect_uri 
+                                FROM clients as c
+                                JOIN client_redirect_uris AS r
+                                ON c.id = r.client_id
+                                WHERE id = %s""", (client["id"], ))
+                    
+                    client["redirect_uris"] = [x[0] for x in cur.fetchall()]
+
+                    cur.execute("""
+                                SELECT grant_type 
+                                FROM clients as c
+                                JOIN client_grants AS g
+                                ON c.id = g.client_id
+                                WHERE id = %s""", (client["id"], ))
+                    client["grants"] = [x[0] for x in cur.fetchall()]
+                    
+                    
         return client_dict_list
     
 
