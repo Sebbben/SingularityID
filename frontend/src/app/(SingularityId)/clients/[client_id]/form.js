@@ -2,7 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import API from '@/utils/api'; // Import the API helper class
 import { Card } from "@nextui-org/react";
-    
+import { MultiSelect } from "@/components/Inputs/Fields/MultiSelect";
+import { TagInput } from "@/components/Inputs/Fields/TagInput";
+
+
+
 export function ClientForm({ client_id }) {
     const [clientData, setClientData] = useState(null);
     const [accessTokenLifetime, setAccessTokenLifetime] = useState('');
@@ -42,48 +46,6 @@ export function ClientForm({ client_id }) {
         }
     };
 
-    function handleRemoveRedirectUri(uri) {
-        setClientData((prev) => ({
-            ...prev,
-            redirect_uris: prev.redirect_uris.filter((item) => item !== uri),
-        }));
-    }
-
-    function handleAddRedirectUri(e) {
-        if (e.key === 'Enter' && e.target.value) {
-            setClientData((prev) => ({
-                ...prev,
-                redirect_uris: [...prev.redirect_uris, e.target.value],
-            }));
-            e.target.value = '';
-        }
-    }
-
-    function handleGrantTypeChange(e) {
-        const selectedOptions = Array.from(e.target.selectedOptions).map((option) => option.value);
-        setClientData((prev) => ({
-            ...prev,
-            grant_types: selectedOptions,
-        }));
-    }
-
-    function handleRemoveScope(scope) {
-        setClientData((prev) => ({
-            ...prev,
-            scopes: prev.scopes.filter((item) => item !== scope),
-        }));
-    }
-
-    function handleAddScope(e) {
-        if (e.key === 'Enter' && e.target.value) {
-            setClientData((prev) => ({
-                ...prev,
-                scopes: [...prev.scopes, e.target.value],
-            }));
-            e.target.value = '';
-        }
-    }
-
     return (
         <div className="flex items-center justify-center h-full">
             <Card className="p-8 max-w-lg w-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700">
@@ -119,60 +81,30 @@ export function ClientForm({ client_id }) {
                     </button>
                     <div className="form-group">
                         <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Redirect URIs</label>
-                        <ul className="space-y-2">
-                            {clientData?.redirect_uris?.map((uri, index) => (
-                                <li key={index} className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-900 dark:text-gray-100">{uri}</span>
-                                    <button
-                                        className="text-red-600 hover:underline"
-                                        onClick={() => handleRemoveRedirectUri(uri)}
-                                    >
-                                        Remove
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                        <input
-                            type="text"
-                            className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            placeholder="Add new redirect URI"
-                            onKeyDown={(e) => handleAddRedirectUri(e)}
+                        <TagInput
+                            value={clientData?.redirect_uris || []}
+                            onChange={(newValue) =>
+                                setClientData((prev) => ({ ...prev, redirect_uris: newValue }))
+                            }
                         />
                     </div>
                     <div className="form-group">
                         <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Grant Types</label>
-                        <select
-                            multiple
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        <MultiSelect
+                            options={["authorization_code", "implicit", "password", "client_credentials"]}
                             value={clientData?.grant_types || []}
-                            onChange={(e) => handleGrantTypeChange(e)}
-                        >
-                            <option value="authorization_code">Authorization Code</option>
-                            <option value="implicit">Implicit</option>
-                            <option value="password">Password</option>
-                            <option value="client_credentials">Client Credentials</option>
-                        </select>
+                            onChange={(newValue) =>
+                                setClientData((prev) => ({ ...prev, grant_types: newValue }))
+                            }
+                        />
                     </div>
                     <div className="form-group">
                         <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Scopes</label>
-                        <ul className="space-y-2">
-                            {clientData?.scopes?.map((scope, index) => (
-                                <li key={index} className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-900 dark:text-gray-100">{scope}</span>
-                                    <button
-                                        className="text-red-600 hover:underline"
-                                        onClick={() => handleRemoveScope(scope)}
-                                    >
-                                        Remove
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                        <input
-                            type="text"
-                            className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            placeholder="Add new scope"
-                            onKeyDown={(e) => handleAddScope(e)}
+                        <TagInput
+                            value={clientData?.scopes || []}
+                            onChange={(newValue) =>
+                                setClientData((prev) => ({ ...prev, scopes: newValue }))
+                            }
                         />
                     </div>
                 </div>

@@ -3,8 +3,8 @@
 import API from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { Card } from "@nextui-org/react";
-import { RedirectButton } from "@/components/Buttons/RedirectButton";
-import { DataFetchButton } from "@/components/Buttons/DataFetchButton";
+import { RedirectButton } from "@/components/Inputs/Buttons/RedirectButton";
+import { DataFetchButton } from "@/components/Inputs/Buttons/DataFetchButton";
 import { useRouter } from "next/navigation";
 
 export function ClientList() {
