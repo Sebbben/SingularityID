@@ -27,13 +27,14 @@ class URL:
     
 
 class Result:
-    def __init__(self, success, error=None):
+    def __init__(self, success, error=None, data = None):
         self.success = success
         self.error = error if isinstance(error, list) else ([error] if error else [])
+        self.data = data
 
     @staticmethod
-    def Ok():
-        return Result(success=True)
+    def Ok(data = None):
+        return Result(success=True, data = data)
 
     @staticmethod
     def Error(error):
@@ -47,6 +48,9 @@ class Result:
 
     def get_errors(self):
         return self.error
+    
+    def get_data(self):
+        return self.data
 
     def concat(self, other):
         """Combine this result with another result."""

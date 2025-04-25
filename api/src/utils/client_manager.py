@@ -3,14 +3,15 @@ from src.config import Config
 from flask import request
 from src.utils.sessionHandler import SessionManager
 import src.utils.requestDefs as requestDefs
+from src.utils.general import Result
 
 class ClientManager:
     @staticmethod
-    def get_clients(**client_filter) -> list[dict]:
+    def get_clients(**client_filter) -> Result:
         """
         Returns a list of clients the user has permission to see
         """
-        if "client_id" in client_filter and not ClientManager.has_permission(request.args.get("client_id")): return requestDefs.forbidden("Client does not exist or you do not have permission")
+        if "client_id" in client_filter and not ClientManager.has_permission(request.args.get("client_id")): return Result.Error("Client does not exist or you do not have permission")
 
         db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
         session = SessionManager.get_instance().get_session(request.cookies.get("session_token"))
@@ -68,7 +69,7 @@ class ClientManager:
                     client["grants"] = [x[0] for x in cur.fetchall()]
                     
                     
-        return client_dict_list
+        return Result.Ok(client_dict_list)
     
 
     @staticmethod

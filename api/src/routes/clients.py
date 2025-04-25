@@ -14,10 +14,14 @@ def clients():
     
     if request.method == "GET":
         if "client_id" in request.args:
-            clients_list = ClientManager.get_clients(client_id = request.args.get("client_id"))
-            return jsonify(clients_list[0])
+            res = ClientManager.get_clients(client_id = request.args.get("client_id"))
         else:
-            return jsonify(ClientManager.get_clients())
+            res = ClientManager.get_clients()
+            
+        if res.is_ok():
+            return jsonify(res.get_data())
+        else:
+            return requestDefs.forbidden("\n".join(res.get_errors()))
 
     elif request.method == "POST":
         return requestDefs.internal_server_error("Not implemented")

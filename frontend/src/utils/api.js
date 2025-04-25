@@ -43,6 +43,7 @@ class API {
     }
 
     static async extractJSONResponse(res) {
+        if (!(200 <= res.status <= 399)) return [res.status, null]
         try {
             let json = await res.json()
             if (300 <= res.status <= 399 && json.redirect_uri) API.handleRedirect(json.redirect_uri)
@@ -54,6 +55,7 @@ class API {
             } else {
                 throw err; // Re-throw other errors
             }
+            return [res.status, null]
         }
     }
 

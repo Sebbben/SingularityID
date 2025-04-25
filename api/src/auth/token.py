@@ -1,9 +1,6 @@
 from flask import request, jsonify
-from src.db import DatabaseManager
 import src.utils.requestDefs as requestDefs
 from src.utils.auth import OAuth
-import datetime
-from src.config import Config
 
 def token():
     """
@@ -21,40 +18,20 @@ def token():
     - 400 Bad request
     - 500 Internal server error
     """
+    
     data: dict[str, str] = request.get_json()
 
-    grant_type = data["grant_type"]
-    code = data["code"]
-    redirect_uri = data["redirect_uri"]
-    client_id = data["client_id"]
+    # Checks for correct requets params and returns None if request params are incorrect
+    request_type = OAuth.token_request_type(data) 
 
-    # TODO: Make util function for proper check of params per oauth spec
-    if grant_type != "authorization_code":
-        return requestDefs.bad_request("Invalid grant type")
+    if request_type is None:
+        return requestDefs.bad_request("Incorrect params for request")
+    elif request_type == "authorization_code":
+        res = OAuth.authorization_code_exchange(data["code"], data["client_id"], data["redirect_uri"])
+    elif request_type == "refresh_token":
+        res = OAuth.refresh_token_exchange(data["refresh_token"])
 
-    db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
-
-    with db.connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT user_id, scope FROM authorization_codes WHERE code=%s AND client_id = %s AND redirect_uri = %s AND expires_at >= NOW()", (code, client_id, redirect_uri))
-            res = cur.fetchall()
-
-    if len(res) == 0:
-        return requestDefs.bad_request("Invalid authorization code")
-    if len(res) != 1:
-        return requestDefs.internal_server_error("Something whent wrong with token fetching")
-
-    user_id, scope = res[0]
-    access_token, access_expiration = OAuth.makeAccessToken(client_id, user_id, scope)
-    refresh_token, refresh_expiration = OAuth.makeRefreshToken(client_id, user_id, scope)
-
-    access_expires_in = int((access_expiration-datetime.datetime.now()).total_seconds())
-
-    return jsonify({
-        "token_type": "bearer",
-        "access_token": access_token,
-        "expires_in": access_expires_in,
-        "refresh_token": refresh_token,
-        "refresh_expiration": refresh_expiration,
-        "scope": scope
-    })
+    if res.is_ok():
+        return jsonify(res.get_data())
+    else:
+        return requestDefs.bad_request("\n".join(res.get_errors()))

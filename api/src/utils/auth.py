@@ -84,6 +84,8 @@ class OAuth:
 
         return code, expires_at
     
+    def generate_tokens(client_id, redirect_uri):
+        pass
 
     def makeAccessToken(client_id, user_id, scope) -> tuple[str, datetime.datetime]:
         db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
@@ -102,16 +104,17 @@ class OAuth:
 
         return token, expires_at
     
-    def makeRefreshToken(client_id, user_id, scope) -> tuple[str, datetime.datetime]:
+    def makeRefreshToken(client_id, user_id, scope) -> tuple[str, datetime.datetime]: 
         db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
 
         with db.connection() as conn:
             with conn.cursor() as cur:
+                # TODO: Use config for setting refresh_token duration
                 cur.execute("""
                             INSERT INTO
                             refresh_tokens(client_id, user_id, scope, token, expires_at)
                             VALUES
-                            (%s, %s, %s, gen_random_uuid(), NOW()::timestamp + INTERVAL '1 hour') 
+                            (%s, %s, %s, gen_random_uuid(), NOW()::timestamp + INTERVAL '1 week') 
                             RETURNING token, expires_at
                             """, (client_id, user_id, scope))
                 conn.commit()
@@ -136,3 +139,83 @@ class OAuth:
                 if not bcrypt.checkpw(provided_secret, stored_secret):
                     return Result.Error("Incorrect client password")
                 
+
+    def token_request_type(data):
+        """
+        Get the type of token request or None if invalid request params
+        """
+
+        if "grant_type" not in data: return None
+
+        if data["grant_type"] == "authorization_code":
+            if not all((x in data and data[x] for x in ("code", "redirect_uri", "client_id"))): return None
+            return "authorization_code"
+        elif data["grant_type"] == "refresh_token":
+            if not "refresh_token" in data or not data["refresh_token"]: return None
+            return "refresh_token"
+        else:
+            return None
+        
+    def authorization_code_exchange(code, client_id, redirect_uri) -> Result:
+
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
+
+        with db.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                            SELECT user_id, scope 
+                            FROM authorization_codes 
+                            WHERE code=%s 
+                            AND client_id = %s 
+                            AND redirect_uri = %s 
+                            AND expires_at >= NOW()""", (code, client_id, redirect_uri))
+                res = cur.fetchall()
+        
+        if len(res) == 0:
+            return Result.Error("Invalid authorization code")
+        if len(res) != 1:
+            return Result.Error("Something whent wrong with token fetching")
+
+        user_id, scope = res[0]
+        access_token, access_expiration = OAuth.makeAccessToken(client_id, user_id, scope)
+        refresh_token, refresh_expiration = OAuth.makeRefreshToken(client_id, user_id, scope)
+
+        access_expires_in = int((access_expiration-datetime.datetime.now()).total_seconds())
+
+        return Result.Ok({
+            "token_type": "bearer",
+            "access_token": access_token,
+            "expires_in": access_expires_in,
+            "refresh_token": refresh_token,
+            "refresh_expiration": refresh_expiration,
+            "scope": scope
+        })
+    
+    def refresh_token_exchange(refresh_token):
+        db = DatabaseManager.get_instance().get_db(Config.IDP_DB_NAME)
+
+        with db.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                            SELECT user_id, client_id, scope 
+                            FROM refresh_tokens 
+                            WHERE token=%s 
+                            AND expires_at >= NOW()""", (refresh_token,))
+                res = cur.fetchall()
+        
+        if len(res) == 0:
+            return Result.Error("Invalid refresh_token code")
+        if len(res) != 1:
+            return Result.Error("Something whent wrong with token fetching")
+
+        user_id, client_id, scope = res[0]
+        access_token, access_expiration = OAuth.makeAccessToken(client_id, user_id, scope)
+
+        access_expires_in = int((access_expiration-datetime.datetime.now()).total_seconds())
+
+        return Result.Ok({
+            "token_type": "bearer",
+            "access_token": access_token,
+            "expires_in": access_expires_in,
+        })
+    
